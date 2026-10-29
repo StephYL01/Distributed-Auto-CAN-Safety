@@ -1,8 +1,27 @@
 # Distributed-Auto-CAN-Safety
 C++ / FreeRTOS demonstrator for a distributed automotive CAN network (HMI &amp; BCM) featuring AEB, hardware arbitration, and E2E Functional Safety.
+
+<img width="600" height="337" alt="download" src="https://github.com/user-attachments/assets/5a726bde-0b5b-4951-a4f0-3196c8dd515f" />
+
+
+
 # Distributed Automotive Control System (HMI & BCM) via CAN Bus
 
 This project is a hardware and software demonstrator for a distributed automotive network based on the CAN 2.0B protocol. The system emulates the interaction between a Human-Machine Interface (HMI) module and a Body Control Module (BCM), emphasizing modern **Functional Safety** concepts conceptually aligned with the ISO 26262 standard.
+
+## 🚗 Hardware-to-Vehicle Mapping (HIL Concept)
+
+To effectively demonstrate the distributed system logic on a breadboard scale, standard electronic components are used as direct surrogates for real-world automotive hardware:
+
+| Prototype Component | Real-Vehicle Equivalent (Surrogate for) | Node |
+| :--- | :--- | :--- |
+| **Potentiometer** | Steering Wheel Angle Sensor (SAS) | HMI |
+| **Micro-switch** | Steering Column Wiper Stalk | HMI |
+| **Capacitive Touch** | Steering Wheel Horn Pad | HMI |
+| **Hall Effect Sensor** | Door Ajar Switch / Latch Mechanism | HMI |
+| **HC-SR04 Ultrasonic** | Frontal Radar / LiDAR (for AEB) | HMI |
+| **Servo Motor** | Electronic Power Steering (EPS) Rack / Wiper Motor | BCM |
+| **Active Buzzer** | Vehicle Horn / Internal Chime Warning | BCM |
 
 The firmware is developed in C++ (Arduino Core for ESP32) and runs on **FreeRTOS**, ensuring deterministic execution and preemptive multitasking of network communication, sensor polling, and actuator control tasks.
 
