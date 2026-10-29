@@ -40,6 +40,8 @@ To facilitate edge-case testing (Hardware-in-the-Loop simulation), the HMI node 
 * `D<value>` (e.g., `D14`): Manually sets the distance to 14 cm, forcing the system into the AEB hazard state.
 * `R`: Restores control to the physical ultrasonic sensor (Resets manual override).
 * `U`: Simulates opening or closing the door via software (Toggle).
+* 
+<img width="1907" height="1021" alt="Screenshot 2026-10-29 131827" src="https://github.com/user-attachments/assets/a6133997-20c3-4642-9e14-b9531cff905a" />
 
 ## 🔌 Hardware Pinout (ESP32)
 
