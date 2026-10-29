@@ -78,6 +78,8 @@ struct Debouncer {
   uint8_t sampleCount;
 };
 
+static bool applyDebounce(Debouncer &db, bool rawState);
+
 static bool applyDebounce(Debouncer &db, bool rawState) {
   if (rawState == db.lastRawState) {
     if (db.sampleCount < DEBOUNCE_SAMPLES) db.sampleCount++;
