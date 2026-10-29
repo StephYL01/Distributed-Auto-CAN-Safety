@@ -27,7 +27,8 @@
 #define AEB_CRITICAL_DIST_CM 15   // Distance threshold to trigger Emergency Braking
 #define SENSOR_PERIOD_MS     50   // 50ms to allow ultrasonic echo return
 #define CAN_PERIOD_MS        20   // 50Hz CAN Bus refresh rate
-#define LOG_PERIOD_MS        2500 // Console log frequency (setat la 2.5 secunde)
+#define LOG_PERIOD_MS        2500 // Console log frequency
+
 #define DEBOUNCE_SAMPLES     3     
 
 // ------------------------------------------------------------
@@ -76,8 +77,6 @@ struct Debouncer {
   bool    lastRawState;
   uint8_t sampleCount;
 };
-
-static bool applyDebounce(Debouncer &db, bool rawState);
 
 static bool applyDebounce(Debouncer &db, bool rawState) {
   if (rawState == db.lastRawState) {
@@ -163,26 +162,35 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
-    // Citim primul caracter pentru a determina comanda
     char cmd = Serial.read();
-    
-    portENTER_CRITICAL(&g_stateMutex);
+
     if (cmd == 'D' || cmd == 'd') {
-      // Citim numarul care urmeaza (ex: D20)
+      // 1. Citim numărul ÎNAINTE de a bloca resursele
       int dist = Serial.parseInt();
+
+      // 2. Blocăm resursele strict pentru scrierea variabilelor
+      portENTER_CRITICAL(&g_stateMutex);
       g_systemState.obstacleDist = dist;
-      g_manualOverride = true; // Blocăm senzorul fizic
+      g_manualOverride = true;
+      portEXIT_CRITICAL(&g_stateMutex);
+
       Serial.printf("\n[DEBUG] Distanta setata MANUAL la %d cm.\n", dist);
     } 
     else if (cmd == 'R' || cmd == 'r') {
-      g_manualOverride = false; // Deblocăm senzorul fizic
-      Serial.println("\n[DEBUG] Control redat senzorului fizic HC-SR04.");
+      portENTER_CRITICAL(&g_stateMutex);
+      g_manualOverride = false;
+      portEXIT_CRITICAL(&g_stateMutex);
+      
+      Serial.println("\n[DEBUG] Control redat senzorului fizic.");
     }
     else if (cmd == 'U' || cmd == 'u') {
+      portENTER_CRITICAL(&g_stateMutex);
       g_systemState.doorOpen = !g_systemState.doorOpen;
-      Serial.printf("\n[DEBUG] Usa %s din Serial.\n", g_systemState.doorOpen ? "DESCHISA" : "INCHISA");
+      bool currentState = g_systemState.doorOpen; // Salvăm starea pentru printare sigură
+      portEXIT_CRITICAL(&g_stateMutex);
+      
+      Serial.printf("\n[DEBUG] Usa %s din Serial.\n", currentState ? "DESCHISA" : "INCHISA");
     }
-    portEXIT_CRITICAL(&g_stateMutex);
   }
   vTaskDelay(pdMS_TO_TICKS(100)); // Previne blocarea procesorului
 }
