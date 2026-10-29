@@ -44,12 +44,21 @@ This node validates received packets and controls the vehicle's hardware:
 * **Dual-Mode Actuator:** A servo motor that controls either the steering (based on the received angle) or executes a sweeping motion (when the wipers are activated).
 * **Acoustic Warning:** Active buzzer triggered either manually (horn) or automatically (obstacle under 50 cm or hazard state).
 * **Dome Light (Safety Interlock):** LED automatically activated when the door is opened.
+## 📊 CAN Communication Matrix (500 kbps)
+
+| Frame ID | Priority | Publisher | DLC | Byte 0 | Byte 1 | Byte 2 | Byte 3 | Byte 4 (E2E) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `0x010` | High (AEB) | HMI Node | 5 | AEB_Flag (1) | Distance_cm | Unused (0) | Alive Counter | CRC8 |
+| `0x120` | Medium | HMI Node | 5 | Steer_Angle (0-180) | Wiper_Flag (0/1) | Horn_Flag (0/1) | Alive Counter | CRC8 |
+| `0x121` | Medium | HMI Node | 5 | Dist_MSB | Dist_LSB | Door_Status (0/1) | Alive Counter | CRC8 |
+
+*Note: CRC8 is calculated over the Frame ID (LSB) and payload Bytes 0-3.*
 
 ## 🛡️ Functional Safety
 
 The project goes beyond standard remote control by integrating critical safety mechanisms:
 
-* **End-to-End (E2E) Protection:** To prevent the execution of electrically corrupted commands, each CAN frame (DLC = 5) includes an *Alive Counter* (to detect dropped or delayed packets) and a *CRC8* (Cyclic Redundancy Check) calculated over the Payload and ID. The BCM node automatically drops any invalid frame.
+* **End-to-End (E2E) Protection:** To prevent the execution of electrically corrupted commands, each CAN frame (DLC = 5) includes an *Alive Counter* (to detect dropped or delayed packets) and a *CRC8* (Cyclic Redundancy Check) calculated over the Payload and ID. The HMI node generates these safety bytes per AUTOSAR guidelines. (Ongoing Work: Implementing strict frame-drop logic on the BCM receiver side based on CRC mismatch or counter timeout).
 * **Hardware Arbitration (CSMA/CR):** The system relies on CAN IDs to prioritize traffic. Hazard messages (AEB) are assigned ID `0x010` (absolute maximum priority), while standard telemetry receives `0x120` and `0x121`.
 * **Autonomous Emergency Braking (AEB) & Safe State:** If the ultrasonic sensor detects an obstacle under 15 cm, the HMI node intentionally suppresses the transmission of steering commands and prioritizes the critical alert frame. Upon reception, the BCM node enters a *Safe State*: it ignores user inputs, locks the steering to the center position (90 degrees), and activates the acoustic alarm until the hazard clears (features an integrated Auto-Recovery timeout).
 
